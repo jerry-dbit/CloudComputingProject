@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import Link from 'next/link';
 import { Card, Button, Badge } from '@/components/ui';
 import { FileText, Upload, Search, Grid, List, Trash2, Eye } from 'lucide-react';
@@ -8,6 +8,7 @@ import { formatFileSize, formatDate } from '@/lib/utils';
 import type { Document } from '@/types';
 
 export default function DocumentsPage() {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
@@ -106,8 +107,9 @@ export default function DocumentsPage() {
           <h1 className="text-3xl font-bold text-[var(--text-primary)]">Documents</h1>
           <p className="text-[var(--text-secondary)] mt-1">Upload and collaborate on study files</p>
         </div>
-        <label className="inline-flex">
+        <div className="inline-flex">
           <input
+            ref={fileInputRef}
             type="file"
             accept=".pdf,.docx,.doc,.txt"
             className="hidden"
@@ -116,13 +118,20 @@ export default function DocumentsPage() {
               if (file) {
                 void handleFileUpload(file);
               }
+              if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+              }
             }}
           />
-          <Button className="gap-2" disabled={uploading}>
+          <Button 
+            className="gap-2" 
+            disabled={uploading}
+            onClick={() => fileInputRef.current?.click()}
+          >
             <Upload className="w-4 h-4" />
             {uploading ? 'Uploading...' : 'Upload Document'}
           </Button>
-        </label>
+        </div>
       </div>
 
       {uploading && (

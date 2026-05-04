@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Document as PdfDocument, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
 import { Button, Badge, Card } from '@/components/ui';
 import {
   ZoomIn,
@@ -15,10 +17,7 @@ import {
 import { HIGHLIGHT_COLORS, formatDateTime } from '@/lib/utils';
 import type { Document as StudyDoc, Highlight, HighlightColor } from '@/types';
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url
-).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const CURRENT_USER = {
   userId: 'user-1',
