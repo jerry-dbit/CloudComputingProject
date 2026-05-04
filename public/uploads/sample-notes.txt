@@ -1,0 +1,5 @@
+StudyFlow sample note
+
+This is a seeded text document for testing upload, viewing, and highlighting behavior.
+
+Use the Documents page to upload PDF or DOCX files and open them for collaboration.
