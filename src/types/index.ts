@@ -7,6 +7,13 @@ export interface User {
   lastLogin: string;
 }
 
+export interface AuthUser {
+  id: string;
+  username: string;
+  email: string;
+  avatar: string;
+}
+
 export interface Document {
   id: string;
   title: string;
@@ -69,6 +76,7 @@ export interface StudyRoom {
   ownerId: string;
   maxParticipants: number;
   currentDocumentId: string | null;
+  sharedDocumentIds: string[];
   participants: Participant[];
   createdAt: string;
   isActive: boolean;

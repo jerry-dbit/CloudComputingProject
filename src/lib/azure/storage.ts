@@ -25,6 +25,7 @@ export function getContainerClient(): ContainerClient {
 
 export async function uploadFile(file: Buffer, fileName: string, contentType: string): Promise<string> {
   const container = getContainerClient();
+  await container.createIfNotExists({ access: 'blob' });
   const blobClient = container.getBlockBlobClient(fileName);
   
   await blobClient.uploadData(file, {

@@ -5,16 +5,19 @@ import Link from 'next/link';
 import { Card, Button, Badge } from '@/components/ui';
 import { FileText, Users, Highlighter, Upload, ArrowRight, Clock } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+import { useAuth } from '@/components/providers/AuthProvider';
 import type { Document, StudyRoom } from '@/types';
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [rooms, setRooms] = useState<StudyRoom[]>([]);
 
   useEffect(() => {
+    if (!user) return;
     void (async () => {
       const [docsRes, roomsRes] = await Promise.all([
-        fetch('/api/documents', { cache: 'no-store' }),
+        fetch(`/api/documents?ownerId=${encodeURIComponent(user.id)}`, { cache: 'no-store' }),
         fetch('/api/rooms', { cache: 'no-store' }),
       ]);
 
@@ -25,7 +28,7 @@ export default function DashboardPage() {
         setRooms((await roomsRes.json()) as StudyRoom[]);
       }
     })();
-  }, []);
+  }, [user]);
 
   const recentDocuments = useMemo(() => documents.slice(0, 5), [documents]);
   const activeRooms = useMemo(() => rooms.slice(0, 4), [rooms]);
@@ -44,7 +47,7 @@ export default function DashboardPage() {
     <div className="space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-[var(--text-primary)]">Welcome back, John!</h1>
+            <h1 className="text-3xl font-bold text-[var(--text-primary)]">Welcome back, {user?.username || 'there'}!</h1>
           <p className="text-[var(--text-secondary)] mt-1">Continue your collaborative study sessions.</p>
         </div>
         <Link href="/documents">

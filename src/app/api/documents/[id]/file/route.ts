@@ -29,16 +29,22 @@ export async function GET(
     const wantsText = request.nextUrl.searchParams.get('format') === 'text';
 
     if (/^https?:\/\//i.test(doc.storageUrl)) {
-      if (!wantsText) {
-        return NextResponse.redirect(doc.storageUrl);
-      }
-
       const res = await fetch(doc.storageUrl, { cache: 'no-store' });
       if (!res.ok) {
         return NextResponse.json({ error: 'Failed to fetch remote file' }, { status: 502 });
       }
 
       const binary = Buffer.from(await res.arrayBuffer());
+      if (!wantsText) {
+        return new NextResponse(binary, {
+          status: 200,
+          headers: {
+            'Content-Type': mapContentType(doc.fileName.toLowerCase()),
+            'Cache-Control': 'no-store',
+          },
+        });
+      }
+
       if (doc.fileType === 'txt') {
         return new NextResponse(binary.toString('utf-8'), {
           headers: { 'Content-Type': 'text/plain; charset=utf-8' },

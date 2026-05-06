@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRoomById, updateRoom } from '@/lib/db/local';
+import { getUserFromRequest } from '@/lib/auth/session';
 
 export async function POST(
   request: NextRequest,
   context: RouteContext<'/api/rooms/[id]/leave'>
 ) {
   try {
+    const user = getUserFromRequest(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await context.params;
-    const body = await request.json();
-    const userId = String(body.userId || 'user-1');
+    const userId = user.id;
 
     const room = await getRoomById(id);
     if (!room) {

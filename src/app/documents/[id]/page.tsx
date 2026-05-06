@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Document as PdfDocument, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
 import { Button, Badge, Card } from '@/components/ui';
 import {
   ZoomIn,
@@ -14,11 +16,9 @@ import {
 } from 'lucide-react';
 import { HIGHLIGHT_COLORS, formatDateTime } from '@/lib/utils';
 import type { Document as StudyDoc, Highlight, HighlightColor } from '@/types';
+import { socketClient } from '@/lib/realtime/socket-client';
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url
-).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const CURRENT_USER = {
   userId: 'user-1',
@@ -99,24 +99,33 @@ function DocumentViewerPage() {
     }
   }
 
-  async function pollCollab() {
-    const res = await fetch(`/api/collab/document/${documentId}`, { cache: 'no-store' });
-    if (!res.ok) return;
-    const data = (await res.json()) as {
-      highlights: Highlight[];
-      cursors: Array<{ userId: string; username: string; x: number; y: number }>;
-    };
-
-    setHighlights(data.highlights || []);
-    setCursors((data.cursors || []).filter((c) => c.userId !== CURRENT_USER.userId));
-  }
+  // socket is used for real-time collaboration instead of polling
 
   useEffect(() => {
     void loadDocument();
-    const id = window.setInterval(() => {
-      void pollCollab();
-    }, 1500);
-    return () => window.clearInterval(id);
+    
+    const socket = socketClient.getSocket();
+    socket.emit('join-room', documentId);
+
+    socket.on('update-cursors', (data: any) => {
+      setCursors((prev) => {
+        const next = prev.filter((c) => c.userId !== data.userId);
+        next.push(data);
+        return next;
+      });
+    });
+
+    socket.on('update-highlights', (data: Highlight) => {
+      setHighlights((prev) => {
+        if (prev.some(h => h.id === data.id)) return prev;
+        return [...prev, data];
+      });
+    });
+
+    return () => {
+      socket.off('update-cursors');
+      socket.off('update-highlights');
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [documentId]);
 
@@ -180,6 +189,7 @@ function DocumentViewerPage() {
 
     if (res.ok) {
       const created = (await res.json()) as Highlight;
+      socketClient.getSocket().emit('new-highlight', created);
       setHighlights((prev) => [...prev, created]);
       setSelectionRect(null);
       window.getSelection()?.removeAllRanges();
@@ -197,16 +207,12 @@ function DocumentViewerPage() {
   }
 
   async function postCursor(x: number, y: number) {
-    await fetch(`/api/collab/document/${documentId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId: CURRENT_USER.userId,
-        username: CURRENT_USER.username,
-        avatar: CURRENT_USER.avatar,
-        x,
-        y,
-      }),
+    socketClient.getSocket().emit('cursor-move', {
+      ...CURRENT_USER,
+      x,
+      y,
+      roomId: documentId,
+      updatedAt: new Date().toISOString(),
     });
   }
 
