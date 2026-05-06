@@ -1,24 +1,26 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams } from 'next/navigation';
-<<<<<<< HEAD
-import { Button, Badge, Card, Avatar, Input } from '@/components/ui';
-import { Users, MessageSquare, Play, Pause, RotateCcw, FileText, Send, LogOut, Timer } from 'lucide-react';
-import type { ChatMessage, CursorPosition, StudyRoom } from '@/types';
-import { socketClient } from '@/lib/realtime/socket-client';
-
-const CURRENT_USER = {
-  userId: 'user-1',
-  username: 'John Doe',
-  avatar: '',
-};
-=======
-import { Button, Badge, Card, Avatar, Input, Modal } from '@/components/ui';
-import { Users, MessageSquare, Play, Pause, RotateCcw, FileText, Send, LogOut, Timer, Share2, Check, ExternalLink, Presentation } from 'lucide-react';
-import { useAuth } from '@/components/providers/AuthProvider';
-import type { ChatMessage, CursorPosition, StudyRoom, Document } from '@/types';
->>>>>>> de28076 (:))
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "next/navigation";
+import { Button, Badge, Card, Avatar, Input, Modal } from "@/components/ui";
+import {
+  Users,
+  MessageSquare,
+  Play,
+  Pause,
+  RotateCcw,
+  FileText,
+  Send,
+  LogOut,
+  Timer,
+  Share2,
+  Check,
+  ExternalLink,
+  Presentation,
+} from "lucide-react";
+import { useAuth } from "@/components/providers/AuthProvider";
+import type { ChatMessage, CursorPosition, StudyRoom, Document } from "@/types";
+import { socketClient } from "@/lib/realtime/socket-client";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -33,7 +35,7 @@ export default function RoomPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sharedDocuments, setSharedDocuments] = useState<Document[]>([]);
   const [myDocuments, setMyDocuments] = useState<Document[]>([]);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
   const [cursors, setCursors] = useState<CursorPosition[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
@@ -43,26 +45,19 @@ export default function RoomPage() {
 
   const [pomodoroActive, setPomodoroActive] = useState(false);
   const [pomodoroTime, setPomodoroTime] = useState(25 * 60);
-  const [pomodoroType, setPomodoroType] = useState<'work' | 'break'>('work');
+  const [pomodoroType, setPomodoroType] = useState<"work" | "break">("work");
   const [cycles, setCycles] = useState(0);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement | null>(null);
   const cursorTickRef = useRef<number | null>(null);
 
-<<<<<<< HEAD
-  async function loadInitialData() {
-    const [roomRes, messageRes] = await Promise.all([
-      fetch(`/api/rooms/${roomId}`, { cache: 'no-store' }),
-      fetch(`/api/rooms/${roomId}/messages`, { cache: 'no-store' }),
-=======
   async function loadRoomData() {
     const [roomRes, messageRes, collabRes, documentsRes] = await Promise.all([
-      fetch(`/api/rooms/${roomId}`, { cache: 'no-store' }),
-      fetch(`/api/rooms/${roomId}/messages`, { cache: 'no-store' }),
-      fetch(`/api/collab/room/${roomId}`, { cache: 'no-store' }),
-      fetch('/api/documents', { cache: 'no-store' }),
->>>>>>> de28076 (:))
+      fetch(`/api/rooms/${roomId}`, { cache: "no-store" }),
+      fetch(`/api/rooms/${roomId}/messages`, { cache: "no-store" }),
+      fetch(`/api/collab/room/${roomId}`, { cache: "no-store" }),
+      fetch("/api/documents", { cache: "no-store" }),
     ]);
 
     let allDocuments: Document[] = [];
@@ -89,7 +84,7 @@ export default function RoomPage() {
         setActiveDocumentId(roomDocs[0].id);
       }
     } else {
-      setError('Room not found');
+      setError("Room not found");
     }
 
     if (user) {
@@ -102,44 +97,17 @@ export default function RoomPage() {
   }
 
   useEffect(() => {
-<<<<<<< HEAD
-    void loadInitialData();
-
-    const socket = socketClient.getSocket();
-    socket.emit('join-room', roomId);
-
-    socket.on('update-cursors', (data: CursorPosition) => {
-      setCursors((prev) => {
-        const next = prev.filter((c) => c.userId !== data.userId);
-        next.push(data);
-        return next;
-      });
-    });
-
-    socket.on('new-message', (data: ChatMessage) => {
-      setMessages((prev) => {
-        if (prev.some((m) => m.id === data.id)) return prev;
-        return [...prev, data];
-      });
-    });
-
-    return () => {
-      socket.off('update-cursors');
-      socket.off('new-message');
-    };
-=======
     if (!user) return;
     void loadRoomData();
     const id = window.setInterval(() => {
       void loadRoomData();
     }, 1500);
     return () => window.clearInterval(id);
->>>>>>> de28076 (:))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId, user?.id]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   useEffect(() => {
@@ -147,12 +115,12 @@ export default function RoomPage() {
     if (pomodoroActive && pomodoroTime > 0) {
       interval = setInterval(() => setPomodoroTime((prev) => prev - 1), 1000);
     } else if (pomodoroTime === 0) {
-      if (pomodoroType === 'work') {
-        setPomodoroType('break');
+      if (pomodoroType === "work") {
+        setPomodoroType("break");
         setPomodoroTime(5 * 60);
         setCycles((prev) => prev + 1);
       } else {
-        setPomodoroType('work');
+        setPomodoroType("work");
         setPomodoroTime(25 * 60);
       }
       setPomodoroActive(false);
@@ -163,7 +131,9 @@ export default function RoomPage() {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   async function handleSendMessage() {
@@ -171,26 +141,26 @@ export default function RoomPage() {
     if (!text) return;
 
     const res = await fetch(`/api/rooms/${roomId}/messages`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
     });
 
     if (!res.ok) return;
 
     const created = (await res.json()) as ChatMessage;
-    socketClient.getSocket().emit('send-message', { ...created, roomId });
+    socketClient.getSocket().emit("send-message", { ...created, roomId });
 
     setMessages((prev) => [...prev, created]);
-    setNewMessage('');
+    setNewMessage("");
   }
 
   async function handleLeaveRoom() {
     await fetch(`/api/rooms/${roomId}/leave`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
     });
-    window.location.href = '/rooms';
+    window.location.href = "/rooms";
   }
 
   async function handleShareDocument(documentId: string) {
@@ -198,8 +168,8 @@ export default function RoomPage() {
     setShareError(null);
 
     const res = await fetch(`/api/rooms/${roomId}/share-documents`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ documentId }),
     });
 
@@ -207,7 +177,7 @@ export default function RoomPage() {
 
     if (!res.ok) {
       const payload = (await res.json()) as { error?: string };
-      setShareError(payload.error || 'Failed to share document');
+      setShareError(payload.error || "Failed to share document");
       return;
     }
 
@@ -218,26 +188,17 @@ export default function RoomPage() {
   async function handleSelectSharedDocument(documentId: string) {
     setActiveDocumentId(documentId);
     await fetch(`/api/rooms/${roomId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ currentDocumentId: documentId }),
     });
   }
 
   async function postCursor(x: number, y: number) {
-<<<<<<< HEAD
-    socketClient.getSocket().emit('cursor-move', {
-      ...CURRENT_USER,
-      x,
-      y,
-      roomId,
-      updatedAt: new Date().toISOString(),
-=======
     await fetch(`/api/collab/room/${roomId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ x, y }),
->>>>>>> de28076 (:))
     });
   }
 
@@ -260,12 +221,19 @@ export default function RoomPage() {
     [cursors, user?.id]
   );
   const activeDocument = useMemo(
-    () => sharedDocuments.find((doc) => doc.id === activeDocumentId) ?? sharedDocuments[0] ?? null,
+    () =>
+      sharedDocuments.find((doc) => doc.id === activeDocumentId) ??
+      sharedDocuments[0] ??
+      null,
     [activeDocumentId, sharedDocuments]
   );
 
   if (!room) {
-    return <div className="text-[var(--text-secondary)]">{error || 'Loading room...'}</div>;
+    return (
+      <div className="text-[var(--text-secondary)]">
+        {error || "Loading room..."}
+      </div>
+    );
   }
 
   return (
@@ -273,10 +241,16 @@ export default function RoomPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3 min-w-0">
-            <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => window.history.back()}
+            >
               ←
             </Button>
-            <h1 className="text-xl font-semibold text-[var(--text-primary)] truncate">{room.name}</h1>
+            <h1 className="text-xl font-semibold text-[var(--text-primary)] truncate">
+              {room.name}
+            </h1>
             <Badge variant="success">{room.code}</Badge>
           </div>
 
@@ -284,20 +258,30 @@ export default function RoomPage() {
             <Card className="flex items-center gap-3 px-4 py-2">
               <Timer className="w-5 h-5 text-[var(--secondary)]" />
               <div>
-                <p className="text-lg font-semibold text-[var(--text-primary)]">{formatTime(pomodoroTime)}</p>
+                <p className="text-lg font-semibold text-[var(--text-primary)]">
+                  {formatTime(pomodoroTime)}
+                </p>
                 <p className="text-xs text-[var(--text-secondary)]">
-                  {pomodoroType === 'work' ? 'Focus Time' : 'Break Time'}
+                  {pomodoroType === "work" ? "Focus Time" : "Break Time"}
                 </p>
               </div>
             </Card>
-            <Button variant={pomodoroActive ? 'secondary' : 'primary'} size="sm" onClick={() => setPomodoroActive((prev) => !prev)}>
-              {pomodoroActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            <Button
+              variant={pomodoroActive ? "secondary" : "primary"}
+              size="sm"
+              onClick={() => setPomodoroActive((prev) => !prev)}
+            >
+              {pomodoroActive ? (
+                <Pause className="w-4 h-4" />
+              ) : (
+                <Play className="w-4 h-4" />
+              )}
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => {
-                setPomodoroTime(pomodoroType === 'work' ? 25 * 60 : 5 * 60);
+                setPomodoroTime(pomodoroType === "work" ? 25 * 60 : 5 * 60);
                 setPomodoroActive(false);
               }}
             >
@@ -316,7 +300,9 @@ export default function RoomPage() {
             <div className="flex items-center gap-2 min-w-0">
               <Presentation className="w-4 h-4 text-[var(--text-secondary)]" />
               <p className="text-sm text-[var(--text-secondary)] truncate">
-                {activeDocument ? `${activeDocument.title} is being presented` : 'No document being presented'}
+                {activeDocument
+                  ? `${activeDocument.title} is being presented`
+                  : "No document being presented"}
               </p>
             </div>
             {activeDocument && (
@@ -324,7 +310,9 @@ export default function RoomPage() {
                 variant="outline"
                 size="sm"
                 className="gap-1 shrink-0"
-                onClick={() => window.open(`/documents/${activeDocument.id}`, '_blank')}
+                onClick={() =>
+                  window.open(`/documents/${activeDocument.id}`, "_blank")
+                }
               >
                 <ExternalLink className="w-4 h-4" />
                 Open Full View
@@ -338,7 +326,9 @@ export default function RoomPage() {
                 {sharedDocuments.map((doc) => (
                   <Button
                     key={doc.id}
-                    variant={activeDocument?.id === doc.id ? 'primary' : 'outline'}
+                    variant={
+                      activeDocument?.id === doc.id ? "primary" : "outline"
+                    }
                     size="sm"
                     className="gap-1"
                     onClick={() => void handleSelectSharedDocument(doc.id)}
@@ -355,7 +345,7 @@ export default function RoomPage() {
 
           <div className="p-4 h-[calc(72vh-124px)]">
             {activeDocument ? (
-              activeDocument.fileType === 'pdf' ? (
+              activeDocument.fileType === "pdf" ? (
                 <div className="h-full w-full rounded-lg overflow-hidden border border-[var(--surface-dark)] bg-black">
                   <iframe
                     src={`/api/documents/${activeDocument.id}/file#toolbar=1&navpanes=0&scrollbar=1`}
@@ -366,13 +356,17 @@ export default function RoomPage() {
               ) : (
                 <div className="h-full w-full rounded-lg border border-[var(--surface-dark)] bg-[var(--surface)] grid place-items-center p-6 text-center">
                   <div>
-                    <p className="text-[var(--text-primary)] font-medium">This shared file is not a PDF preview.</p>
+                    <p className="text-[var(--text-primary)] font-medium">
+                      This shared file is not a PDF preview.
+                    </p>
                     <p className="text-sm text-[var(--text-secondary)] mt-1">
                       Open it in full view to collaborate on highlights.
                     </p>
                     <Button
                       className="mt-4 gap-2"
-                      onClick={() => window.open(`/documents/${activeDocument.id}`, '_blank')}
+                      onClick={() =>
+                        window.open(`/documents/${activeDocument.id}`, "_blank")
+                      }
                     >
                       <ExternalLink className="w-4 h-4" />
                       Open Document
@@ -383,7 +377,9 @@ export default function RoomPage() {
             ) : (
               <div className="h-full w-full rounded-lg border border-dashed border-[var(--surface-dark)] grid place-items-center p-6 text-center">
                 <div>
-                  <p className="text-[var(--text-primary)] font-medium">Share a document to start presenting.</p>
+                  <p className="text-[var(--text-primary)] font-medium">
+                    Share a document to start presenting.
+                  </p>
                   <p className="text-sm text-[var(--text-secondary)] mt-1">
                     Everyone in this room will see it here live.
                   </p>
@@ -419,19 +415,36 @@ export default function RoomPage() {
             <div key={p.userId} className="flex items-center gap-3">
               <Avatar fallback={p.username.slice(0, 2)} size="md" />
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-[var(--text-primary)] truncate">{p.username}</p>
-                <p className="text-xs text-[var(--text-secondary)]">{p.isOwner ? 'Owner' : 'Member'}</p>
+                <p className="font-medium text-[var(--text-primary)] truncate">
+                  {p.username}
+                </p>
+                <p className="text-xs text-[var(--text-secondary)]">
+                  {p.isOwner ? "Owner" : "Member"}
+                </p>
               </div>
-              {p.userId !== user?.id && <div className="w-2 h-2 bg-[var(--accent)] rounded-full" title="Online" />}
+              {p.userId !== user?.id && (
+                <div
+                  className="w-2 h-2 bg-[var(--accent)] rounded-full"
+                  title="Online"
+                />
+              )}
             </div>
           ))}
         </div>
         <div className="p-4 border-t border-[var(--surface-dark)]">
-          <Button variant="secondary" className="w-full gap-2 mb-3" onClick={() => setIsShareModalOpen(true)}>
+          <Button
+            variant="secondary"
+            className="w-full gap-2 mb-3"
+            onClick={() => setIsShareModalOpen(true)}
+          >
             <Share2 className="w-4 h-4" />
             Share Document
           </Button>
-          <Button variant="danger" className="w-full gap-2" onClick={() => void handleLeaveRoom()}>
+          <Button
+            variant="danger"
+            className="w-full gap-2"
+            onClick={() => void handleLeaveRoom()}
+          >
             <LogOut className="w-4 h-4" />
             Leave Room
           </Button>
@@ -448,15 +461,24 @@ export default function RoomPage() {
         </div>
         <div className="flex-1 overflow-auto p-4 space-y-4">
           {messages.map((msg) => (
-              <div key={msg.id} className={`flex gap-3 ${msg.userId === user?.id ? 'flex-row-reverse' : ''}`}>
-                <Avatar fallback={msg.username.slice(0, 2)} size="sm" />
-                <div className={`flex-1 ${msg.userId === user?.id ? 'text-right' : ''}`}>
-                  <div
-                    className={`inline-block p-3 rounded-lg ${
-                      msg.userId === user?.id
-                        ? 'bg-[var(--primary)] text-white'
-                        : 'bg-[var(--surface-dark)] text-[var(--text-primary)]'
-                    }`}
+            <div
+              key={msg.id}
+              className={`flex gap-3 ${
+                msg.userId === user?.id ? "flex-row-reverse" : ""
+              }`}
+            >
+              <Avatar fallback={msg.username.slice(0, 2)} size="sm" />
+              <div
+                className={`flex-1 ${
+                  msg.userId === user?.id ? "text-right" : ""
+                }`}
+              >
+                <div
+                  className={`inline-block p-3 rounded-lg ${
+                    msg.userId === user?.id
+                      ? "bg-[var(--primary)] text-white"
+                      : "bg-[var(--surface-dark)] text-[var(--text-primary)]"
+                  }`}
                 >
                   <p className="text-sm">{msg.text}</p>
                 </div>
@@ -472,7 +494,7 @@ export default function RoomPage() {
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === "Enter") {
                   void handleSendMessage();
                 }
               }}
@@ -484,11 +506,17 @@ export default function RoomPage() {
         </div>
       </div>
 
-      <Modal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} title="Share a document to this room">
+      <Modal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        title="Share a document to this room"
+      >
         <div className="space-y-3">
           {shareError && <p className="text-sm text-red-400">{shareError}</p>}
           {myDocuments.length === 0 ? (
-            <p className="text-sm text-[var(--text-secondary)]">Upload a document first, then share it here.</p>
+            <p className="text-sm text-[var(--text-secondary)]">
+              Upload a document first, then share it here.
+            </p>
           ) : (
             myDocuments.map((doc) => {
               const alreadyShared = room.sharedDocumentIds.includes(doc.id);
@@ -498,18 +526,26 @@ export default function RoomPage() {
                   className="flex items-center justify-between gap-3 rounded-lg border border-[var(--surface-dark)] p-3"
                 >
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-[var(--text-primary)] truncate">{doc.title}</p>
-                    <p className="text-xs text-[var(--text-secondary)] truncate">{doc.fileName}</p>
+                    <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                      {doc.title}
+                    </p>
+                    <p className="text-xs text-[var(--text-secondary)] truncate">
+                      {doc.fileName}
+                    </p>
                   </div>
                   <Button
                     size="sm"
-                    variant={alreadyShared ? 'outline' : 'primary'}
+                    variant={alreadyShared ? "outline" : "primary"}
                     disabled={alreadyShared || isSharing}
                     onClick={() => void handleShareDocument(doc.id)}
                     className="gap-1 shrink-0"
                   >
-                    {alreadyShared ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
-                    {alreadyShared ? 'Shared' : 'Share'}
+                    {alreadyShared ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      <Share2 className="w-4 h-4" />
+                    )}
+                    {alreadyShared ? "Shared" : "Share"}
                   </Button>
                 </div>
               );
