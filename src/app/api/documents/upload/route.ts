@@ -3,15 +3,20 @@ import path from 'node:path';
 import { createDocument } from '@/lib/db/local';
 import { getFileExtension, getFileTypeFromExtension, generateId } from '@/lib/utils';
 import { persistFile } from '@/lib/upload';
+import { getUserFromRequest } from '@/lib/auth/session';
 
 const MAX_SIZE = 50 * 1024 * 1024;
 const ALLOWED_EXTENSIONS = new Set(['pdf', 'docx', 'doc', 'txt']);
 
 export async function POST(request: NextRequest) {
   try {
+    const user = getUserFromRequest(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file');
-    const ownerId = String(formData.get('ownerId') || 'user-1');
 
     if (!(file instanceof File)) {
       return NextResponse.json({ error: 'Missing file in request.' }, { status: 400 });
@@ -48,7 +53,7 @@ export async function POST(request: NextRequest) {
       fileSize: file.size,
       storageUrl: upload.storageUrl,
       storagePath: upload.storagePath,
-      ownerId,
+      ownerId: user.id,
       createdAt: now,
       updatedAt: now,
     });

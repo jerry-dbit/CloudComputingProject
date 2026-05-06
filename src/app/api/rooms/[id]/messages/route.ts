@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { addRoomMessage, getRoomById, getRoomMessages } from '@/lib/db/local';
+import { getUserFromRequest } from '@/lib/auth/session';
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   context: RouteContext<'/api/rooms/[id]/messages'>
 ) {
   try {
+    const user = getUserFromRequest(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await context.params;
     const room = await getRoomById(id);
     if (!room) {
@@ -25,6 +31,11 @@ export async function POST(
   context: RouteContext<'/api/rooms/[id]/messages'>
 ) {
   try {
+    const user = getUserFromRequest(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await context.params;
     const room = await getRoomById(id);
     if (!room) {
@@ -39,8 +50,8 @@ export async function POST(
 
     const message = await addRoomMessage({
       roomId: id,
-      userId: String(body.userId || 'user-1'),
-      username: String(body.username || 'John Doe'),
+      userId: user.id,
+      username: user.username,
       text,
     });
 

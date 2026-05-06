@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createRoom, getRooms, getRoomByCode } from '@/lib/db/local';
 import { generateId, generateRoomCode } from '@/lib/utils';
 import type { StudyRoom } from '@/types';
+import { getUserFromRequest } from '@/lib/auth/session';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,12 +16,17 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const user = getUserFromRequest(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
 
     const name = String(body.name || '').trim();
     const subject = String(body.subject || '').trim();
-    const ownerId = String(body.ownerId || 'user-1');
-    const ownerName = String(body.ownerName || 'John Doe');
+    const ownerId = user.id;
+    const ownerName = user.username;
     const maxParticipants = Number(body.maxParticipants || 10);
 
     if (!name || !subject) {
@@ -49,6 +55,7 @@ export async function POST(request: NextRequest) {
       ownerId,
       maxParticipants,
       currentDocumentId: null,
+      sharedDocumentIds: [],
       participants: [
         {
           userId: ownerId,

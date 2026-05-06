@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Avatar } from '@/components/ui';
 import { useTheme } from '@/components/providers/ThemeProvider';
+import { useAuth } from '@/components/providers/AuthProvider';
 import { 
   Home, 
   FileText, 
@@ -29,6 +30,11 @@ const bottomItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
+  const { user, loading, logout } = useAuth();
+
+  if (pathname === '/') {
+    return null;
+  }
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-[260px] bg-[var(--surface)] border-r border-[var(--surface-dark)] flex flex-col z-40">
@@ -82,7 +88,10 @@ export function Sidebar() {
           </Link>
         ))}
         
-        <button className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-dark)] hover:text-[var(--text-primary)] transition-all duration-200 w-full">
+        <button
+          onClick={() => void logout()}
+          className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-dark)] hover:text-[var(--text-primary)] transition-all duration-200 w-full"
+        >
           <LogOut className="w-5 h-5" />
           Sign Out
         </button>
@@ -90,10 +99,12 @@ export function Sidebar() {
 
       <div className="p-4 border-t border-[var(--surface-dark)]">
         <div className="flex items-center gap-3 px-4 py-3">
-          <Avatar fallback="JD" size="md" />
+          <Avatar src={user?.avatar} fallback={(user?.username || 'User').slice(0, 2)} size="md" />
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-[var(--text-primary)] truncate">John Doe</p>
-            <p className="text-sm text-[var(--text-secondary)] truncate">john@example.com</p>
+            <p className="font-medium text-[var(--text-primary)] truncate">
+              {loading ? 'Loading...' : user?.username || 'Unknown user'}
+            </p>
+            <p className="text-sm text-[var(--text-secondary)] truncate">{user?.email || 'No email'}</p>
           </div>
         </div>
       </div>

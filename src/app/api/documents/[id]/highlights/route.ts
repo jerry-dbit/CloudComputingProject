@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { addHighlight, deleteHighlight, getDocumentById } from '@/lib/db/local';
 import type { HighlightColor } from '@/types';
+import { getUserFromRequest } from '@/lib/auth/session';
 
 const VALID_COLORS = new Set<HighlightColor>(['yellow', 'green', 'pink', 'blue']);
 
@@ -28,6 +29,11 @@ export async function POST(
   context: RouteContext<'/api/documents/[id]/highlights'>
 ) {
   try {
+    const user = getUserFromRequest(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await context.params;
     const body = await request.json();
 
@@ -43,8 +49,8 @@ export async function POST(
     }
 
     const created = await addHighlight(id, {
-      userId: String(body.userId || 'user-1'),
-      username: String(body.username || 'John Doe'),
+      userId: user.id,
+      username: user.username,
       color: body.color,
       text: String(body.text || ''),
       position: {

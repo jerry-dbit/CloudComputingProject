@@ -33,7 +33,10 @@ export async function readDb(): Promise<StudyflowDb> {
 
   return {
     documents: parsed.documents ?? [],
-    rooms: parsed.rooms ?? [],
+    rooms: (parsed.rooms ?? []).map((room) => ({
+      ...room,
+      sharedDocumentIds: room.sharedDocumentIds ?? [],
+    })),
     messages: parsed.messages ?? [],
   };
 }

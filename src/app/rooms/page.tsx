@@ -1,17 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { Card, Button, Badge, Modal, Input, Avatar } from '@/components/ui';
-import { Users, Plus, Search, Lock, Unlock, BookOpen } from 'lucide-react';
+import { Users, Plus, Search, Lock, Unlock, BookOpen, Hash, Sparkles } from 'lucide-react';
+import { useAuth } from '@/components/providers/AuthProvider';
 import type { StudyRoom } from '@/types';
 
-const CURRENT_USER = {
-  userId: 'user-1',
-  username: 'John Doe',
-};
-
 export default function RoomsPage() {
+  const { user } = useAuth();
   const [rooms, setRooms] = useState<StudyRoom[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -33,8 +29,9 @@ export default function RoomsPage() {
   }
 
   useEffect(() => {
+    if (!user) return;
     void loadRooms();
-  }, []);
+  }, [user]);
 
   const filteredRooms = useMemo(
     () =>
@@ -57,8 +54,6 @@ export default function RoomsPage() {
         name: newRoomName,
         subject: newRoomSubject,
         maxParticipants: newRoomMaxParticipants,
-        ownerId: CURRENT_USER.userId,
-        ownerName: CURRENT_USER.username,
       }),
     });
 
@@ -79,7 +74,6 @@ export default function RoomsPage() {
     const res = await fetch(`/api/rooms/${roomId}/join`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(CURRENT_USER),
     });
     if (res.ok) {
       window.location.href = `/rooms/${roomId}`;
@@ -98,28 +92,54 @@ export default function RoomsPage() {
     await handleJoinRoomById(room.id);
   }
 
+  const totalParticipants = useMemo(
+    () => rooms.reduce((acc, room) => acc + room.participants.length, 0),
+    [rooms]
+  );
+
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-[var(--text-primary)]">Study Rooms</h1>
-          <p className="text-[var(--text-secondary)] mt-1">Join or create rooms to study together</p>
+      <div className="rounded-2xl border border-[var(--surface-dark)] bg-[linear-gradient(120deg,rgba(30,58,95,0.12),rgba(15,23,42,0.04))] p-6 md:p-7">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <p className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[var(--text-secondary)]">
+              <Sparkles className="w-3.5 h-3.5" />
+              Collaboration Hub
+            </p>
+            <h1 className="text-3xl font-bold text-[var(--text-primary)] mt-2">Study Rooms</h1>
+            <p className="text-[var(--text-secondary)] mt-1">Create focused spaces and join sessions instantly.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" onClick={() => setIsJoinModalOpen(true)} className="gap-2">
+              <Unlock className="w-4 h-4" />
+              Join Room
+            </Button>
+            <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Create Room
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={() => setIsJoinModalOpen(true)} className="gap-2">
-            <Unlock className="w-4 h-4" />
-            Join Room
-          </Button>
-          <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Create Room
-          </Button>
+
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Card className="py-3">
+            <p className="text-xs text-[var(--text-secondary)]">Active Rooms</p>
+            <p className="text-2xl font-semibold text-[var(--text-primary)] mt-1">{rooms.length}</p>
+          </Card>
+          <Card className="py-3">
+            <p className="text-xs text-[var(--text-secondary)]">Participants Online</p>
+            <p className="text-2xl font-semibold text-[var(--text-primary)] mt-1">{totalParticipants}</p>
+          </Card>
+          <Card className="py-3">
+            <p className="text-xs text-[var(--text-secondary)]">Filtered Results</p>
+            <p className="text-2xl font-semibold text-[var(--text-primary)] mt-1">{filteredRooms.length}</p>
+          </Card>
         </div>
       </div>
 
       {error && <Card className="text-sm text-red-400">{error}</Card>}
 
-      <div className="relative max-w-md">
+      <div className="relative max-w-lg">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
         <input
           type="text"
@@ -132,7 +152,8 @@ export default function RoomsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredRooms.map((room) => (
-          <Card key={room.id} hover>
+          <Card key={room.id} hover className="relative overflow-hidden">
+            <div className="absolute right-0 top-0 h-20 w-20 bg-[radial-gradient(circle_at_top_right,rgba(30,58,95,0.22),transparent_65%)]" />
             <div className="flex items-start justify-between mb-4">
               <div className="w-12 h-12 bg-[var(--secondary)]/10 rounded-xl flex items-center justify-center">
                 <BookOpen className="w-6 h-6 text-[var(--secondary)]" />
@@ -153,7 +174,7 @@ export default function RoomsPage() {
                 </span>
               </div>
               <div className="flex items-center gap-1">
-                <Lock className="w-4 h-4" />
+                <Hash className="w-4 h-4" />
                 <span>{room.code}</span>
               </div>
             </div>
@@ -181,6 +202,13 @@ export default function RoomsPage() {
           </Card>
         ))}
       </div>
+
+      {filteredRooms.length === 0 && (
+        <Card className="text-center py-10">
+          <p className="text-[var(--text-primary)] font-medium">No rooms match your search.</p>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">Try a different keyword or create a new study room.</p>
+        </Card>
+      )}
 
       <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Create Study Room">
         <div className="space-y-4">

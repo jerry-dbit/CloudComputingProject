@@ -5,9 +5,11 @@ import Link from 'next/link';
 import { Card, Button, Badge } from '@/components/ui';
 import { FileText, Upload, Search, Grid, List, Trash2, Eye } from 'lucide-react';
 import { formatFileSize, formatDate } from '@/lib/utils';
+import { useAuth } from '@/components/providers/AuthProvider';
 import type { Document } from '@/types';
 
 export default function DocumentsPage() {
+  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -18,8 +20,11 @@ export default function DocumentsPage() {
   const [error, setError] = useState<string | null>(null);
 
   async function loadDocuments() {
+    if (!user) return;
     setError(null);
-    const res = await fetch('/api/documents', { cache: 'no-store' });
+    const res = await fetch(`/api/documents?ownerId=${encodeURIComponent(user.id)}`, {
+      cache: 'no-store',
+    });
     if (!res.ok) {
       setError('Failed to load documents');
       return;
@@ -29,8 +34,10 @@ export default function DocumentsPage() {
   }
 
   useEffect(() => {
+    if (!user) return;
     void loadDocuments();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const filteredDocuments = useMemo(
     () =>
@@ -69,7 +76,6 @@ export default function DocumentsPage() {
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('ownerId', 'user-1');
 
     const timer = setInterval(() => {
       setUploadProgress((prev) => Math.min(95, prev + 10));

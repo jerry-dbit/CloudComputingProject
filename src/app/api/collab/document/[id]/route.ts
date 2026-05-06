@@ -4,12 +4,18 @@ import {
   getDocumentPresence,
   upsertDocumentPresence,
 } from '@/lib/realtime/store';
+import { getUserFromRequest } from '@/lib/auth/session';
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   context: RouteContext<'/api/collab/document/[id]'>
 ) {
   try {
+    const user = getUserFromRequest(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await context.params;
     const doc = await getDocumentById(id);
     if (!doc) {
@@ -35,6 +41,11 @@ export async function POST(
   context: RouteContext<'/api/collab/document/[id]'>
 ) {
   try {
+    const user = getUserFromRequest(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await context.params;
     const body = await request.json();
     const doc = await getDocumentById(id);
@@ -43,9 +54,9 @@ export async function POST(
     }
 
     const cursors = upsertDocumentPresence(id, {
-      userId: String(body.userId || 'user-1'),
-      username: String(body.username || 'John Doe'),
-      avatar: String(body.avatar || ''),
+      userId: user.id,
+      username: user.username,
+      avatar: user.avatar,
       x: Number(body.x || 0),
       y: Number(body.y || 0),
     });
