@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getDocuments } from '@/lib/db/local';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const documents = await getDocuments();
     return NextResponse.json(documents);

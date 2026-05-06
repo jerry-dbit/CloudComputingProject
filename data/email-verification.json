@@ -1,0 +1,56 @@
+{
+  "challenges": [
+    {
+      "email": "mahajanarchit1011@gmail.com",
+      "purpose": "password-reset",
+      "codeHash": "867f712a18caf35ea6794afb40d7a6012a7046f2c8f8f047e38d24f26e787ecd",
+      "codeLast4": "8238",
+      "firstName": "A",
+      "username": "AM",
+      "createdAt": "2026-05-06T00:37:30.701Z",
+      "updatedAt": "2026-05-06T00:37:30.701Z",
+      "expiresAt": "2026-05-06T00:47:30.702Z",
+      "lastSentAt": "2026-05-06T00:37:30.701Z",
+      "attempts": 0
+    },
+    {
+      "email": "testuser@example.com",
+      "purpose": "password-reset",
+      "codeHash": "5eaa25c260fcac2f543a4712de03dabd9b8d602710ae5af2ee65f44fa6d5e018",
+      "codeLast4": "9891",
+      "firstName": "Test",
+      "username": "testuser",
+      "createdAt": "2026-05-06T00:36:37.386Z",
+      "updatedAt": "2026-05-06T00:36:37.386Z",
+      "expiresAt": "2026-05-06T00:46:37.386Z",
+      "lastSentAt": "2026-05-06T00:36:37.386Z",
+      "attempts": 0
+    },
+    {
+      "email": "perftest@example.com",
+      "purpose": "signup",
+      "codeHash": "2de8597910f027168688639a7bd1e2d53207864ba2baff98e4deb9f359d6c462",
+      "codeLast4": "0768",
+      "firstName": "Perf",
+      "username": "perftest",
+      "createdAt": "2026-05-06T00:36:22.966Z",
+      "updatedAt": "2026-05-06T00:36:22.966Z",
+      "expiresAt": "2026-05-06T00:46:22.967Z",
+      "lastSentAt": "2026-05-06T00:36:22.966Z",
+      "attempts": 0
+    },
+    {
+      "email": "opttest@example.com",
+      "purpose": "signup",
+      "codeHash": "dc848beaca5a388a8524edc80206f0a42cbf4ec0cecebb13c0e1f6b95d415d7b",
+      "codeLast4": "2042",
+      "firstName": "Opt",
+      "username": "opttest",
+      "createdAt": "2026-05-06T00:35:33.079Z",
+      "updatedAt": "2026-05-06T00:35:33.079Z",
+      "expiresAt": "2026-05-06T00:45:33.080Z",
+      "lastSentAt": "2026-05-06T00:35:33.079Z",
+      "attempts": 0
+    }
+  ]
+}

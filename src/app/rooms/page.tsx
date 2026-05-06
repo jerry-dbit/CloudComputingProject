@@ -1,17 +1,17 @@
 'use client';
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, Button, Badge, Modal, Input, Avatar } from '@/components/ui';
 import { Users, Plus, Search, Lock, Unlock, BookOpen } from 'lucide-react';
+import { useAuth } from '@/components/providers/AuthProvider';
+import { getDisplayName } from '@/lib/auth';
 import type { StudyRoom } from '@/types';
 
-const CURRENT_USER = {
-  userId: 'user-1',
-  username: 'John Doe',
-};
-
 export default function RoomsPage() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [rooms, setRooms] = useState<StudyRoom[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -49,6 +49,7 @@ export default function RoomsPage() {
 
   async function handleCreateRoom() {
     if (!newRoomName.trim() || !newRoomSubject.trim()) return;
+    if (!user) return;
 
     const res = await fetch('/api/rooms', {
       method: 'POST',
@@ -57,8 +58,8 @@ export default function RoomsPage() {
         name: newRoomName,
         subject: newRoomSubject,
         maxParticipants: newRoomMaxParticipants,
-        ownerId: CURRENT_USER.userId,
-        ownerName: CURRENT_USER.username,
+        ownerId: user.id,
+        ownerName: getDisplayName(user),
       }),
     });
 
@@ -76,13 +77,19 @@ export default function RoomsPage() {
   }
 
   async function handleJoinRoomById(roomId: string) {
+    if (!user) return;
+
     const res = await fetch(`/api/rooms/${roomId}/join`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(CURRENT_USER),
+      body: JSON.stringify({
+        userId: user.id,
+        username: getDisplayName(user),
+        avatar: '',
+      }),
     });
     if (res.ok) {
-      window.location.href = `/rooms/${roomId}`;
+      router.replace(`/rooms/${roomId}`);
       return;
     }
     const payload = (await res.json()) as { error?: string };

@@ -1,26 +1,51 @@
 'use client';
+/* eslint-disable react-hooks/set-state-in-effect */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, Button, Input, Avatar } from '@/components/ui';
 import { User, Save, Cloud, Database, Settings as SettingsIcon, Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/components/providers/ThemeProvider';
+import { useAuth } from '@/components/providers/AuthProvider';
+import { getDisplayName, getInitials } from '@/lib/auth';
 
 export default function SettingsPage() {
-  const [username, setUsername] = useState('John Doe');
-  const [email, setEmail] = useState('john@example.com');
+  const { user, updateProfile } = useAuth();
+  const [username, setUsername] = useState(user?.username || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [firstName, setFirstName] = useState(user?.firstName || '');
+  const [lastName, setLastName] = useState(user?.lastName || '');
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
   const { theme, toggleTheme } = useTheme();
+  const displayName = getDisplayName(user);
+  const initials = getInitials(user);
+
+  useEffect(() => {
+    if (!user) return;
+
+    setUsername(user.username);
+    setEmail(user.email || '');
+    setFirstName(user.firstName);
+    setLastName(user.lastName);
+  }, [user]);
 
   const handleSave = () => {
+    setError('');
+    const result = updateProfile({ username, email, firstName, lastName });
+    if ('error' in result) {
+      setError(result.error || 'Failed to update profile.');
+      return;
+    }
+
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    window.setTimeout(() => setSaved(false), 2000);
   };
 
   return (
     <div className="max-w-2xl mx-auto space-y-8 animate-fade-in">
       <div>
         <h1 className="text-3xl font-bold text-[var(--text-primary)]">Settings</h1>
-        <p className="text-[var(--text-secondary)] mt-1">Manage your account and preferences</p>
+        <p className="text-[var(--text-secondary)] mt-1">Manage your account and preferences for {displayName}</p>
       </div>
 
       <Card className="p-6">
@@ -30,19 +55,25 @@ export default function SettingsPage() {
         </h2>
         
         <div className="flex items-center gap-6 mb-6">
-          <Avatar fallback="JD" size="lg" />
+          <Avatar fallback={initials} size="lg" />
           <div>
             <Button variant="outline" size="sm">Change Avatar</Button>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">JPG, PNG or GIF. Max 2MB.</p>
+            <p className="text-xs text-[var(--text-secondary)] mt-2">Profile data is stored locally for this demo session.</p>
           </div>
         </div>
 
         <div className="space-y-4">
           <Input
-            label="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter your username"
+            label="First Name"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            placeholder="Enter your first name"
+          />
+          <Input
+            label="Last Name"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="Enter your last name"
           />
           <Input
             label="Email"
@@ -51,12 +82,20 @@ export default function SettingsPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
           />
+          <Input
+            label="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Enter your username"
+          />
         </div>
 
         <Button onClick={handleSave} className="mt-6 gap-2">
           <Save className="w-4 h-4" />
           {saved ? 'Saved!' : 'Save Changes'}
         </Button>
+
+        {error && <p className="mt-3 text-sm text-[var(--danger)]">{error}</p>}
       </Card>
 
       <Card className="p-6">

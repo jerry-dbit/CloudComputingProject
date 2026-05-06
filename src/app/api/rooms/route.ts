@@ -3,7 +3,7 @@ import { createRoom, getRooms, getRoomByCode } from '@/lib/db/local';
 import { generateId, generateRoomCode } from '@/lib/utils';
 import type { StudyRoom } from '@/types';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const rooms = await getRooms();
     return NextResponse.json(rooms);

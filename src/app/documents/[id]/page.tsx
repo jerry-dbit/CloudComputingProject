@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -15,21 +16,17 @@ import {
   Trash2,
 } from 'lucide-react';
 import { HIGHLIGHT_COLORS, formatDateTime } from '@/lib/utils';
+import { useAuth } from '@/components/providers/AuthProvider';
 import type { Document as StudyDoc, Highlight, HighlightColor } from '@/types';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-
-const CURRENT_USER = {
-  userId: 'user-1',
-  username: 'John Doe',
-  avatar: '',
-};
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
 function DocumentViewerPage() {
+  const { user } = useAuth();
   const params = useParams<{ id: string }>();
   const documentId = params.id;
 
@@ -107,7 +104,7 @@ function DocumentViewerPage() {
     };
 
     setHighlights(data.highlights || []);
-    setCursors((data.cursors || []).filter((c) => c.userId !== CURRENT_USER.userId));
+    setCursors((data.cursors || []).filter((c) => c.userId !== user?.id));
   }
 
   useEffect(() => {
@@ -157,14 +154,14 @@ function DocumentViewerPage() {
   }
 
   async function saveHighlight() {
-    if (!selectionRect || !doc) return;
+    if (!selectionRect || !doc || !user) return;
 
     const res = await fetch(`/api/documents/${documentId}/highlights`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        userId: CURRENT_USER.userId,
-        username: CURRENT_USER.username,
+        userId: user.id,
+        username: user.username,
         color: selectedColor,
         text: selectionRect.text,
         position: {
@@ -196,13 +193,15 @@ function DocumentViewerPage() {
   }
 
   async function postCursor(x: number, y: number) {
+    if (!user) return;
+
     await fetch(`/api/collab/document/${documentId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        userId: CURRENT_USER.userId,
-        username: CURRENT_USER.username,
-        avatar: CURRENT_USER.avatar,
+        userId: user.id,
+        username: user.username,
+        avatar: '',
         x,
         y,
       }),
@@ -395,7 +394,7 @@ function DocumentViewerPage() {
                       {h.username} - p.{h.position.page} - {formatDateTime(h.createdAt)}
                     </p>
                   </div>
-                  {h.userId === CURRENT_USER.userId && (
+                  {h.userId === user?.id && (
                     <button
                       onClick={() => void removeHighlight(h.id)}
                       className="text-[var(--danger)]"

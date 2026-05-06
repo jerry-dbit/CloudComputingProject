@@ -1,0 +1,24 @@
+{
+  "users": [
+    {
+      "id": "84b84964-5d11-4ef0-9a00-4ecdc55e3392",
+      "username": "AM",
+      "email": "mahajanarchit1011@gmail.com",
+      "password": "Architom@1011",
+      "firstName": "A",
+      "lastName": "M",
+      "createdAt": "2026-05-06T00:31:17.219Z",
+      "updatedAt": "2026-05-06T00:32:36.395Z"
+    },
+    {
+      "id": "1e5c5d16-5b16-4d89-ba96-86b15d16c694",
+      "username": "testuser",
+      "email": "testuser@example.com",
+      "password": "NewPassword456!",
+      "firstName": "Test",
+      "lastName": "User",
+      "createdAt": "2026-05-06T00:27:28.402Z",
+      "updatedAt": "2026-05-06T00:27:55.819Z"
+    }
+  ]
+}

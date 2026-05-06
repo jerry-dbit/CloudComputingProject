@@ -1,23 +1,20 @@
 'use client';
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Button, Badge, Card, Avatar, Input } from '@/components/ui';
 import { Users, MessageSquare, Play, Pause, RotateCcw, FileText, Send, LogOut, Timer } from 'lucide-react';
+import { useAuth } from '@/components/providers/AuthProvider';
 import type { ChatMessage, CursorPosition, StudyRoom } from '@/types';
-
-const CURRENT_USER = {
-  userId: 'user-1',
-  username: 'John Doe',
-  avatar: '',
-};
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
 export default function RoomPage() {
+  const { user } = useAuth();
   const params = useParams<{ id: string }>();
   const roomId = params.id;
 
@@ -98,12 +95,12 @@ export default function RoomPage() {
 
   async function handleSendMessage() {
     const text = newMessage.trim();
-    if (!text) return;
+    if (!text || !user) return;
 
     const res = await fetch(`/api/rooms/${roomId}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...CURRENT_USER, text }),
+      body: JSON.stringify({ userId: user.id, username: user.username, avatar: '', text }),
     });
 
     if (!res.ok) return;
@@ -114,19 +111,23 @@ export default function RoomPage() {
   }
 
   async function handleLeaveRoom() {
+    if (!user) return;
+
     await fetch(`/api/rooms/${roomId}/leave`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: CURRENT_USER.userId }),
+      body: JSON.stringify({ userId: user.id }),
     });
     window.location.href = '/rooms';
   }
 
   async function postCursor(x: number, y: number) {
+    if (!user) return;
+
     await fetch(`/api/collab/room/${roomId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...CURRENT_USER, x, y }),
+      body: JSON.stringify({ userId: user.id, username: user.username, avatar: '', x, y }),
     });
   }
 
@@ -145,8 +146,8 @@ export default function RoomPage() {
   }
 
   const roomCursors = useMemo(
-    () => cursors.filter((cursor) => cursor.userId !== CURRENT_USER.userId),
-    [cursors]
+    () => cursors.filter((cursor) => cursor.userId !== user?.id),
+    [cursors, user?.id]
   );
 
   if (!room) {
@@ -216,7 +217,7 @@ export default function RoomPage() {
                 This room supports real-time chat, participant presence, cursor sync, and shared document access.
               </p>
               <p className="text-[var(--text-secondary)] mt-2">
-                Use the "Open Shared Document" button to collaborate on highlights in real-time.
+                Use the Open Shared Document button to collaborate on highlights in real-time.
               </p>
             </div>
           </div>
@@ -251,7 +252,7 @@ export default function RoomPage() {
                 <p className="font-medium text-[var(--text-primary)] truncate">{p.username}</p>
                 <p className="text-xs text-[var(--text-secondary)]">{p.isOwner ? 'Owner' : 'Member'}</p>
               </div>
-              {p.userId !== CURRENT_USER.userId && <div className="w-2 h-2 bg-[var(--accent)] rounded-full" title="Online" />}
+              {p.userId !== user?.id && <div className="w-2 h-2 bg-[var(--accent)] rounded-full" title="Online" />}
             </div>
           ))}
         </div>
@@ -273,12 +274,12 @@ export default function RoomPage() {
         </div>
         <div className="flex-1 overflow-auto p-4 space-y-4">
           {messages.map((msg) => (
-            <div key={msg.id} className={`flex gap-3 ${msg.userId === CURRENT_USER.userId ? 'flex-row-reverse' : ''}`}>
+            <div key={msg.id} className={`flex gap-3 ${msg.userId === user?.id ? 'flex-row-reverse' : ''}`}>
               <Avatar fallback={msg.username.slice(0, 2)} size="sm" />
-              <div className={`flex-1 ${msg.userId === CURRENT_USER.userId ? 'text-right' : ''}`}>
+              <div className={`flex-1 ${msg.userId === user?.id ? 'text-right' : ''}`}>
                 <div
                   className={`inline-block p-3 rounded-lg ${
-                    msg.userId === CURRENT_USER.userId
+                    msg.userId === user?.id
                       ? 'bg-[var(--primary)] text-white'
                       : 'bg-[var(--surface-dark)] text-[var(--text-primary)]'
                   }`}

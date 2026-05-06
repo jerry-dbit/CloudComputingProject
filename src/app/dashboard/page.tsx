@@ -5,9 +5,12 @@ import Link from 'next/link';
 import { Card, Button, Badge } from '@/components/ui';
 import { FileText, Users, Highlighter, Upload, ArrowRight, Clock } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+import { useAuth } from '@/components/providers/AuthProvider';
+import { getDisplayName } from '@/lib/auth';
 import type { Document, StudyRoom } from '@/types';
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [rooms, setRooms] = useState<StudyRoom[]>([]);
 
@@ -33,6 +36,7 @@ export default function DashboardPage() {
     () => documents.reduce((acc, doc) => acc + doc.highlights.length, 0),
     [documents]
   );
+  const displayName = getDisplayName(user);
 
   const stats = [
     { label: 'Documents', value: String(documents.length), icon: FileText, color: 'bg-[var(--primary)]' },
@@ -44,7 +48,7 @@ export default function DashboardPage() {
     <div className="space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-[var(--text-primary)]">Welcome back, John!</h1>
+          <h1 className="text-3xl font-bold text-[var(--text-primary)]">Welcome back, {displayName}!</h1>
           <p className="text-[var(--text-secondary)] mt-1">Continue your collaborative study sessions.</p>
         </div>
         <Link href="/documents">

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { HTMLAttributes } from 'react';
 
@@ -29,7 +30,7 @@ export function Avatar({ src, alt, fallback, size = 'md', className, ...props }:
       {...props}
     >
       {src ? (
-        <img src={src} alt={alt || ''} className="w-full h-full object-cover" />
+        <Image src={src} alt={alt || ''} fill sizes="56px" className="object-cover" />
       ) : (
         <span>{initials}</span>
       )}

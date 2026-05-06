@@ -14,7 +14,6 @@ interface RealtimeStore {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var __studyflowRealtimeStore: RealtimeStore | undefined;
 }
 
