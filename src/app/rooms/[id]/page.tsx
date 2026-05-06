@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { Button, Badge, Card, Avatar, Input } from '@/components/ui';
 import { Users, MessageSquare, Play, Pause, RotateCcw, FileText, Send, LogOut, Timer } from 'lucide-react';
 import type { ChatMessage, CursorPosition, StudyRoom } from '@/types';
+import { socketClient } from '@/lib/realtime/socket-client';
 
 const CURRENT_USER = {
   userId: 'user-1',
@@ -36,11 +37,10 @@ export default function RoomPage() {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const cursorTickRef = useRef<number | null>(null);
 
-  async function loadRoomData() {
-    const [roomRes, messageRes, collabRes] = await Promise.all([
+  async function loadInitialData() {
+    const [roomRes, messageRes] = await Promise.all([
       fetch(`/api/rooms/${roomId}`, { cache: 'no-store' }),
       fetch(`/api/rooms/${roomId}/messages`, { cache: 'no-store' }),
-      fetch(`/api/collab/room/${roomId}`, { cache: 'no-store' }),
     ]);
 
     if (roomRes.ok) {
@@ -52,19 +52,33 @@ export default function RoomPage() {
     if (messageRes.ok) {
       setMessages((await messageRes.json()) as ChatMessage[]);
     }
-
-    if (collabRes.ok) {
-      const snapshot = (await collabRes.json()) as { cursors: CursorPosition[] };
-      setCursors(snapshot.cursors || []);
-    }
   }
 
   useEffect(() => {
-    void loadRoomData();
-    const id = window.setInterval(() => {
-      void loadRoomData();
-    }, 1500);
-    return () => window.clearInterval(id);
+    void loadInitialData();
+
+    const socket = socketClient.getSocket();
+    socket.emit('join-room', roomId);
+
+    socket.on('update-cursors', (data: CursorPosition) => {
+      setCursors((prev) => {
+        const next = prev.filter((c) => c.userId !== data.userId);
+        next.push(data);
+        return next;
+      });
+    });
+
+    socket.on('new-message', (data: ChatMessage) => {
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === data.id)) return prev;
+        return [...prev, data];
+      });
+    });
+
+    return () => {
+      socket.off('update-cursors');
+      socket.off('new-message');
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
 
@@ -109,6 +123,8 @@ export default function RoomPage() {
     if (!res.ok) return;
 
     const created = (await res.json()) as ChatMessage;
+    socketClient.getSocket().emit('send-message', { ...created, roomId });
+
     setMessages((prev) => [...prev, created]);
     setNewMessage('');
   }
@@ -123,10 +139,12 @@ export default function RoomPage() {
   }
 
   async function postCursor(x: number, y: number) {
-    await fetch(`/api/collab/room/${roomId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...CURRENT_USER, x, y }),
+    socketClient.getSocket().emit('cursor-move', {
+      ...CURRENT_USER,
+      x,
+      y,
+      roomId,
+      updatedAt: new Date().toISOString(),
     });
   }
 

@@ -37,7 +37,8 @@ export async function persistFile(
       storagePath: fileName,
       storageUrl: azureUrl,
     };
-  } catch {
+  } catch (error) {
+    console.error('Azure Upload Error:', error);
     return saveLocalFile(buffer, fileName);
   }
 }
